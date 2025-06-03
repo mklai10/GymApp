@@ -2,7 +2,7 @@ import { ExcerciseForm } from "@/components/ExcerciseForm";
 import { ExcerciseList } from "@/components/ExcerciseList";
 import * as SQLite from "expo-sqlite";
 import { useState } from "react";
-import { StatusBar, StyleSheet, Text, TextInput, View } from "react-native";
+import { StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function index() {
@@ -30,14 +30,7 @@ export default function index() {
           <Text style={styles.pageHeaderText}>Excercises</Text>
         </View>
         <View style={styles.page}>
-          <View style={styles.searchBar}>
-            <TextInput
-              style={[styles.baseText, styles.searchText]}
-              value={currentName}
-              placeholder="Search Here"
-              onChangeText={(newName) => setCurrentName(newName)}
-            ></TextInput>
-          </View>
+          
           <ExcerciseForm />
           <ExcerciseList />
         </View>

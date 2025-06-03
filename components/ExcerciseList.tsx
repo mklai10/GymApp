@@ -1,17 +1,19 @@
 import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 export function ExcerciseList() {
   const [excercises, setExcercises] = useState<Excercise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentName, setCurrentName] = useState("");
   const db = useSQLiteContext();
 
   interface Excercise {
@@ -45,6 +47,15 @@ export function ExcerciseList() {
   }
 
   return (
+    <View>
+    <View style={styles.searchBar}>
+      <TextInput
+                  style={[styles.baseText, styles.searchText]}
+                  value={currentName}
+                  placeholder="Search Here"
+                  onChangeText={(newName) => setCurrentName(newName)}
+                />
+              </View>
     <FlatList
       style={styles.excerciseContainer}
       showsVerticalScrollIndicator={false}
@@ -52,7 +63,7 @@ export function ExcerciseList() {
       refreshControl={
         <RefreshControl refreshing={isLoading} onRefresh={loadExcercises} />
       }
-      keyExtractor={(item) => item.id.toString as unknown as string}
+      keyExtractor={(item) => item.id as unknown as string}
       // keyExtractor={(item) => item.excerciseName}
       renderItem={({ item }) => (
         <View style={styles.excerciseCard}>
@@ -66,14 +77,30 @@ export function ExcerciseList() {
             {item.muscle}
           </Text>
         </View>
+        
       )}
+      
     />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   baseText: {
     color: "white",
+  },
+  searchBar: {
+    backgroundColor: "#373737",
+    width: "75%",
+    height: 40,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: "darkgray",
+    padding: 10,
+  },
+  searchText: {
+    fontSize: 15,
+    textAlign: "left",
   },
   excerciseContainer: {
     // backgroundColor: 'white',
