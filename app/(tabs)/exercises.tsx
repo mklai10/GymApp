@@ -2,12 +2,12 @@ import { ExcerciseForm } from "@/components/ExcerciseForm";
 import { ExcerciseList } from "@/components/ExcerciseList";
 import * as SQLite from "expo-sqlite";
 import { useState } from "react";
-import { StatusBar, StyleSheet, Text, View } from "react-native";
+import { Keyboard, StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function index() {
-  // const db = SQLite.openDatabaseSync('example.db');
-  // const [names, setNames] = useState([]);
+  const db = SQLite.openDatabaseSync('example.db');
+  const [names, setNames] = useState([]);
   const [currentName, setCurrentName] = useState("");
 
   return (
@@ -25,14 +25,16 @@ export default function index() {
       }}
       options={{ useNewConnection: false }}
     >
-      <SafeAreaView>
+      <SafeAreaView onStartShouldSetResponder={() => {
+          Keyboard.dismiss();
+          return false;
+        }}>
         <View style={styles.pageHeaderContainer}>
           <Text style={styles.pageHeaderText}>Excercises</Text>
         </View>
         <View style={styles.page}>
-          
-          <ExcerciseForm />
           <ExcerciseList />
+          <ExcerciseForm />
         </View>
       </SafeAreaView>
     </SQLite.SQLiteProvider>

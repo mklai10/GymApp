@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function index() {
     const [text, setText] = useState('');
     return (
-        <SafeAreaView>
+        <SafeAreaView style={styles.screen} onStartShouldSetResponder={() => {
+                  Keyboard.dismiss();
+                  return false;
+                }}>
             <View style={styles.pageHeaderContainer}>
                 <Text style={[styles.baseText, styles.pageHeaderText]}>
                     My Activity
@@ -63,6 +66,10 @@ export default function index() {
 }
 
 const styles = StyleSheet.create({
+    screen: {
+        height: '100%',
+        width: '100%',
+    },
     baseText: {
         color: 'white',
     },
@@ -84,7 +91,7 @@ const styles = StyleSheet.create({
     },
     homeCard: {
         width: 220,
-        height: '100%',
+        height: 120,
         borderColor: 'darkgray',
         borderWidth: 1,
         borderRadius: 15,

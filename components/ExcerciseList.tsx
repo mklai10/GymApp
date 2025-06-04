@@ -13,7 +13,8 @@ import {
 export function ExcerciseList() {
 	const [excercises, setExcercises] = useState<Excercise[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
-	const [currentName, setCurrentName] = useState("");
+	const [searchQuery, setSearchQuery] = useState("");
+	const [filteredExcercises, setFilteredExcercises] = useState<Excercise[]>([]);
 	const db = useSQLiteContext();
 
 	interface Excercise {
@@ -45,24 +46,32 @@ export function ExcerciseList() {
 	}
 
 	return (
-		<View>
+		<View style={styles.page}>
 			<View style={styles.searchBar}>
 				<TextInput
 					style={[styles.baseText, styles.searchText]}
-					value={currentName}
+					value={searchQuery}
 					placeholder="Search Here"
-					onChangeText={(newName) => setCurrentName(newName)}
+					onChangeText={(newName) => {
+						// console.log(newName);
+						setSearchQuery(newName);
+						let filtered  = excercises.filter((excercise) => {
+							return excercise.excerciseName.toLowerCase().includes(newName.toLowerCase());
+						});
+						// console.log(filtered);
+						setFilteredExcercises(filtered);
+					}}
+					autoCorrect={false}
 				/>
 			</View>
 			<FlatList
 				style={styles.excerciseContainer}
 				showsVerticalScrollIndicator={false}
-				data={excercises}
+				data={searchQuery.length > 0 ? filteredExcercises:excercises}
 				refreshControl={
 					<RefreshControl refreshing={isLoading} onRefresh={loadExcercises} />
 				}
 				keyExtractor={(item) => item.id as unknown as string}
-				// keyExtractor={(item) => item.excerciseName}
 				renderItem={({ item }) => (
 					<View style={styles.excerciseCard}>
 						<Text style={[styles.baseText, styles.cardHeader]}>
@@ -80,6 +89,11 @@ export function ExcerciseList() {
 }
 
 const styles = StyleSheet.create({
+	page: {
+    	width: "100%",
+    	alignItems: "center",
+    	justifyContent: "center",
+  	},
 	baseText: {
 		color: "white",
 	},
@@ -97,8 +111,6 @@ const styles = StyleSheet.create({
 		textAlign: "left",
 	},
 	excerciseContainer: {
-		// backgroundColor: 'white',
-		// opacity: 0.1,
 		width: "75%",
 		height: 500,
 		borderWidth: 1,
@@ -111,7 +123,6 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderRadius: 15,
 		padding: 15,
-		// opacity: 1,
 	},
 	cardHeader: {
 		fontSize: 15,
