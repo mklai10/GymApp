@@ -19,7 +19,6 @@ export default function index() {
                 horizontal={true} 
                 showsHorizontalScrollIndicator={false} 
                 contentContainerStyle={{columnGap: 1}} 
-                // contentOffset={{x:10000000000, y:0}}
                 >
                 
                 <View style={styles.homeCard}>

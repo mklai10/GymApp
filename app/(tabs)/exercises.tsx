@@ -19,9 +19,9 @@ export default function index() {
                     CREATE TABLE IF NOT EXISTS excercises (id INTEGER PRIMARY KEY AUTOINCREMENT,excerciseName TEXT NOT NULL UNIQUE, weight INTEGER, muscle TEXT NOT NULL);
                     PRAGMA journal_mode = WAL;
                 `);
-        // const results = await db.getAllAsync(`SELECT * FROM excercises`);
+        const results = await db.getAllAsync(`SELECT * FROM excercises`);
         // console.log(typeof(results[0]));
-        // console.log(results);
+        console.log(results);
       }}
       options={{ useNewConnection: false }}
     >

@@ -1,28 +1,29 @@
-import { useSQLiteContext } from "expo-sqlite";
+import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
 import { useEffect, useState } from "react";
 import {
 	ActivityIndicator,
 	FlatList,
 	RefreshControl,
 	StyleSheet,
-	Text,
 	TextInput,
-	View,
+	View
 } from "react-native";
+import { WeightForm } from "./WeightForm";
+
+export interface Excercise {
+		excerciseName: string;
+		id: number;
+		muscle: string;
+		weight: number;
+}
 
 export function ExcerciseList() {
 	const [excercises, setExcercises] = useState<Excercise[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [filteredExcercises, setFilteredExcercises] = useState<Excercise[]>([]);
+	
 	const db = useSQLiteContext();
-
-	interface Excercise {
-		excerciseName: string;
-		id: number;
-		muscle: string;
-		weight: number;
-	}
 
 	const loadExcercises = async () => {
 		try {
@@ -73,15 +74,32 @@ export function ExcerciseList() {
 				}
 				keyExtractor={(item) => item.id as unknown as string}
 				renderItem={({ item }) => (
-					<View style={styles.excerciseCard}>
-						<Text style={[styles.baseText, styles.cardHeader]}>
-							{item.excerciseName}
-						</Text>
-						<Text style={[styles.baseText, styles.cardText]}>
-							{`${item.weight}lbs`}
-						</Text>
-						<Text style={[styles.baseText, styles.cardFooter]}>{item.muscle}</Text>
-					</View>
+					// <View style={styles.excerciseCard}>
+					// 	<Text style={[styles.baseText, styles.cardHeader]}>
+					// 		{item.excerciseName}
+					// 	</Text>
+					// 	<Text style={[styles.baseText, styles.cardText]}>
+					// 		{`${item.weight}lbs`}
+					// 	</Text>
+					// 	<Text style={[styles.baseText, styles.cardFooter]}>{item.muscle}</Text>
+					// </View>
+					<SQLiteProvider
+						databaseName={`${item.excerciseName}Table.db`}
+						onInit={async (db) => {
+							// const name = item.excerciseName.re
+							// await db.execAsync(`DROP TABLE excercises`);
+							await db.execAsync(`
+								CREATE TABLE IF NOT EXISTS "${item.excerciseName}" (id INTEGER PRIMARY KEY AUTOINCREMENT, weight INTEGER NOT NULL, date TEXT NOT NULL);
+								PRAGMA journal_mode = WAL;
+								`);
+							const results = await db.getAllAsync(`SELECT * FROM "${item.excerciseName}"`);
+							// console.log(typeof(results[0]));
+							console.log(results);
+						}}
+					>
+						<WeightForm{...item}/>
+					</SQLiteProvider>
+						
 				)}
 			/>
 		</View>

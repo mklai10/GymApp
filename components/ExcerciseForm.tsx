@@ -36,16 +36,14 @@ export function ExcerciseForm() {
                 weight: "",
                 muscle: "",
             });
+            setModalVisible(false);
         } catch (error) {
             Alert.alert("Error", (error as Error).message);
         }
     };
 
     return (
-        <View onStartShouldSetResponder={() => {
-                  setModalVisible(false);
-                  return false;
-                }}>
+        <View>
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -140,5 +138,11 @@ const styles = StyleSheet.create({
         borderRadius: 45,
         borderWidth: 1,
         borderColor: 'darkgray',
+    },
+    firstCard: {
+        marginLeft: 20,
+    },
+    lastCard: {
+        marginRight: 20,
     },
 });
