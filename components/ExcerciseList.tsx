@@ -30,7 +30,6 @@ export function ExcerciseList() {
 			setIsLoading(true);
 			const results = await db.getAllAsync(`SELECT * FROM excercises ORDER BY id DESC`);
 			setExcercises(results as Excercise[]);
-			typeof results;
 		} catch (error) {
 			console.error("Database error", error);
 		} finally {
@@ -87,14 +86,14 @@ export function ExcerciseList() {
 						databaseName={`${item.excerciseName}Table.db`}
 						onInit={async (db) => {
 							// const name = item.excerciseName.re
-							// await db.execAsync(`DROP TABLE excercises`);
+							// await db.execAsync(`DROP TABLE "${item.excerciseName}"`);
 							await db.execAsync(`
-								CREATE TABLE IF NOT EXISTS "${item.excerciseName}" (id INTEGER PRIMARY KEY AUTOINCREMENT, weight INTEGER NOT NULL, date TEXT NOT NULL);
+								CREATE TABLE IF NOT EXISTS "${item.excerciseName}" (id INTEGER PRIMARY KEY AUTOINCREMENT, excerciseName TEXT NOT NULL, weight INTEGER NOT NULL, setNum INTEGER NOT NULL, reps INTEGER NOT NULL, date TEXT NOT NULL);
 								PRAGMA journal_mode = WAL;
 								`);
-							const results = await db.getAllAsync(`SELECT * FROM "${item.excerciseName}"`);
+							// const results = await db.getAllAsync(`SELECT * FROM "${item.excerciseName}"`);
 							// console.log(typeof(results[0]));
-							console.log(results);
+							// console.log(results);
 						}}
 					>
 						<WeightForm{...item}/>

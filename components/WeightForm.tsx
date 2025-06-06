@@ -1,37 +1,81 @@
 import Entypo from '@expo/vector-icons/Entypo';
 import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
-import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Excercise } from './ExcerciseList';
 
 export function WeightForm(item: Excercise) {
     const [modalVisible, setModalVisible] = useState(false);
-    const [form, setForm] = useState({
-        weight: "",
-    });
+    const [numOfSets, setNumOfSets] = useState("");
+    const [inputSets, setInputSets] = useState<Set[]>([]);
+    
+    interface Set {
+        excerciseName: string;
+        id: number;
+        weight: string;
+        setNum: string;
+        reps: string,
+        date: string;
+    }
+
+    const inputSetsTemp: Set[] = [];
 
     const db = useSQLiteContext();
 
+    const handleNumOfSets = (num: string) => {
+        try {
+            if (isNaN(+num)) {
+                throw new Error("Number of sets must be a number");
+            }
+
+            for (let i = 1; i<=+num; i++) {
+                let tempSet: Set ={
+                    excerciseName: item.excerciseName,
+                    id: 0,
+                    weight: "",
+                    setNum: `${i}`,
+                    reps: "",
+                    date: ""
+                }
+                inputSetsTemp.push(tempSet);
+            }
+            setInputSets(inputSetsTemp);
+        } catch (error) {
+            Alert.alert("Error", (error as Error).message);   
+        }
+    }
+
+    // const loadSets = async () => {
+    //     try {
+	// 		const results = await db.getAllAsync(`SELECT * FROM "${item.excerciseName}" GROUP BY date`)
+    //         setSets(results as Set[]);
+	// 	} catch (error) {
+	// 		console.error("Database error", error);
+	// 	}
+    // }
+
     const handleSubmit = async () => {
         try {
-            if (!form.weight) {
-                throw new Error("All Fields are required");
-            }
+            
+            inputSets.forEach((set) => {
+                if (!set.weight || !set.reps) {
+                    throw new Error("All fields are required");
+                }
+                if (isNaN(+set.weight) || isNaN(+set.reps)) {
+                    throw new Error("Weight must be a number");
+                }
+            })
 
-            if (isNaN(+form.weight)) {
-                throw new Error("Weight must be a number");
-            }
-
-            await db.runAsync(
-                `INSERT INTO "${item.excerciseName}" (weight, date) VALUES (?, ?)`,
-                [form.weight, Date()]
-            );
+            inputSets.forEach(async (set) => {
+                await db.runAsync(
+                    `INSERT INTO "${item.excerciseName}" (excerciseName, weight, setNum, reps, date) VALUES (?, ?, ?, ?, ?)`,
+                    [set.excerciseName, set.weight, set.setNum, set.reps, Date()]
+                );
+            })
+           
 
             Alert.alert("Success", "Excercise added successfully");
-            setForm({
-                weight: "",
-            });
-            setModalVisible(false);
+            setNumOfSets("");
         } catch (error) {
             Alert.alert("Error", (error as Error).message);
         }
@@ -75,9 +119,38 @@ export function WeightForm(item: Excercise) {
                     </Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Weight"
-                        value={form.weight}
-                        onChangeText={(text) => setForm({ ...form, weight: text })}
+                        placeholder="Number of Sets"
+                        value={numOfSets}
+                        onChangeText={(num) => {
+                            setNumOfSets(num);
+                            handleNumOfSets(num as string);
+                        }}
+                    />
+                    <FlatList 
+                        style={styles.setsListContainer}
+				        showsVerticalScrollIndicator={false}
+				        data={inputSets}
+                        keyExtractor={(item) => `${item.setNum}`}
+                        renderItem={({ item }) => (
+                            <View style={styles.setContainer}>
+                                <TextInput 
+                                    style={[styles.setInput]}
+                                    placeholder='Weight'
+                                    value={`${item.weight}`}
+                                    onChangeText={(text) => {
+                                        setInputSets(inputSets.map(i => (i.setNum === item.setNum ? {...i, weight: text}:i)))
+                                    }}
+                                />
+                                <TextInput 
+                                    style={[styles.setInput]}
+                                    placeholder='Reps'
+                                    value={`${item.reps}`}
+                                    onChangeText={(text) => {
+                                        setInputSets(inputSets.map(i => (i.setNum === item.setNum ? {...i, reps: text}:i)))
+                                    }}
+                                />
+                            </View>
+                        )}
                     />
                     <TouchableOpacity
                         style={styles.addExcerciseButton}
@@ -93,12 +166,12 @@ export function WeightForm(item: Excercise) {
                     <Text style={[styles.cardText, styles.baseText]}>
                         {item.excerciseName}
                     </Text>
-                    <TextInput
+                    {/* <TextInput
                         style={styles.input}
                         placeholder="Weight"
                         value={form.weight}
                         onChangeText={(text) => setForm({ ...form, weight: text })}
-                    />
+                    /> */}
                     <TouchableOpacity
                         style={styles.addExcerciseButton}
                         onPress={async () =>  handleSubmit()}
@@ -113,12 +186,12 @@ export function WeightForm(item: Excercise) {
                     <Text style={[styles.cardText, styles.baseText]}>
                         {item.excerciseName}
                     </Text>
-                    <TextInput
+                    {/* <TextInput
                         style={styles.input}
                         placeholder="Weight"
                         value={form.weight}
                         onChangeText={(text) => setForm({ ...form, weight: text })}
-                    />
+                    /> */}
                     <TouchableOpacity
                         style={styles.addExcerciseButton}
                         onPress={async () =>  handleSubmit()}
@@ -167,10 +240,6 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		textAlign: "left",
 	},
-    plusButton: {
-        color: "white",
-        marginTop: 20,
-    },
     modalScrollContainer: {
         width: '100%',
     },
@@ -186,24 +255,29 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     modalClose: {
+        position: 'absolute',
         color: "white",
         alignSelf: 'flex-end',  
+        top: 20,
+        right: 20,
     },
     input: {
         color: "white",
-        borderBottomWidth: 1,
+        borderWidth: 1,
         borderColor: "white",
         height: 55,
         fontSize: 20,
+        marginBottom: 10,
     },
     addExcerciseButton: {
         backgroundColor: 'black',
+        position: 'absolute',
         color: "white",
         width: '50%',
         height: 30,
+        bottom: 10,
         alignSelf: 'center',
         justifyContent: 'center',
-        marginTop: 45,
         borderRadius: 45,
         borderWidth: 1,
         borderColor: 'darkgray',
@@ -214,4 +288,31 @@ const styles = StyleSheet.create({
     lastCard: {
         marginRight: 20,
     },
+    setsListContainer: {
+		width: "100%",
+		height: "100%",
+		borderColor: "darkgray",
+	},
+    setContainer: {
+        width: "100%",
+		height: 120,
+		borderColor: "darkgray",
+		borderWidth: 1,
+		borderRadius: 15,
+		padding: 15,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        columnGap: 10,
+        marginBottom: 15,
+    },
+    setInput: {
+        color: 'white',
+        width: "40%",
+        height: 100,
+        borderWidth: 1,
+        borderColor: "white",
+        fontSize: 25,
+        textAlign: 'center',
+    }
 });
