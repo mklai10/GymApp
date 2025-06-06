@@ -1,11 +1,14 @@
-import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
+import Entypo from '@expo/vector-icons/Entypo';
+import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useState } from "react";
 import {
 	ActivityIndicator,
 	FlatList,
 	RefreshControl,
 	StyleSheet,
+	Text,
 	TextInput,
+	TouchableOpacity,
 	View
 } from "react-native";
 import { WeightForm } from "./WeightForm";
@@ -17,11 +20,12 @@ export interface Excercise {
 		weight: number;
 }
 
-export function ExcerciseList() {
+export function ExcerciseList({needsLoad} : {needsLoad:number}) {
 	const [excercises, setExcercises] = useState<Excercise[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [filteredExcercises, setFilteredExcercises] = useState<Excercise[]>([]);
+	const [modalVisible, setModalVisible] = useState(false);
 	
 	const db = useSQLiteContext();
 
@@ -53,12 +57,10 @@ export function ExcerciseList() {
 					value={searchQuery}
 					placeholder="Search Here"
 					onChangeText={(newName) => {
-						// console.log(newName);
 						setSearchQuery(newName);
 						let filtered  = excercises.filter((excercise) => {
 							return excercise.excerciseName.toLowerCase().includes(newName.toLowerCase());
 						});
-						// console.log(filtered);
 						setFilteredExcercises(filtered);
 					}}
 					autoCorrect={false}
@@ -68,36 +70,48 @@ export function ExcerciseList() {
 				style={styles.excerciseContainer}
 				showsVerticalScrollIndicator={false}
 				data={searchQuery.length > 0 ? filteredExcercises:excercises}
+				extraData={needsLoad}
 				refreshControl={
 					<RefreshControl refreshing={isLoading} onRefresh={loadExcercises} />
 				}
 				keyExtractor={(item) => item.id as unknown as string}
 				renderItem={({ item }) => (
-					// <View style={styles.excerciseCard}>
-					// 	<Text style={[styles.baseText, styles.cardHeader]}>
-					// 		{item.excerciseName}
-					// 	</Text>
-					// 	<Text style={[styles.baseText, styles.cardText]}>
-					// 		{`${item.weight}lbs`}
-					// 	</Text>
-					// 	<Text style={[styles.baseText, styles.cardFooter]}>{item.muscle}</Text>
-					// </View>
-					<SQLiteProvider
-						databaseName={`${item.excerciseName}Table.db`}
-						onInit={async (db) => {
-							// const name = item.excerciseName.re
-							// await db.execAsync(`DROP TABLE "${item.excerciseName}"`);
-							await db.execAsync(`
-								CREATE TABLE IF NOT EXISTS "${item.excerciseName}" (id INTEGER PRIMARY KEY AUTOINCREMENT, excerciseName TEXT NOT NULL, weight INTEGER NOT NULL, setNum INTEGER NOT NULL, reps INTEGER NOT NULL, date TEXT NOT NULL);
-								PRAGMA journal_mode = WAL;
-								`);
-							// const results = await db.getAllAsync(`SELECT * FROM "${item.excerciseName}"`);
-							// console.log(typeof(results[0]));
-							// console.log(results);
-						}}
-					>
-						<WeightForm{...item}/>
-					</SQLiteProvider>
+					// <SQLiteProvider
+					// 	databaseName="weightliftingDatabase.db"
+					// 	onInit={async (db) => {
+					// 		await db.execAsync(`
+					// 			CREATE TABLE IF NOT EXISTS "${item.excerciseName}" (id INTEGER PRIMARY KEY AUTOINCREMENT, excerciseName TEXT NOT NULL, weight INTEGER NOT NULL, setNum INTEGER NOT NULL, reps INTEGER NOT NULL, date TEXT NOT NULL);
+					// 			PRAGMA journal_mode = WAL;
+					// 		`);
+					// 		const results = await db.getAllAsync(`SELECT * FROM "${item.excerciseName}"`);
+					// 		console.log(results);
+					// 	}}
+					// >
+						<TouchableOpacity style={styles.excerciseCard} onPress={() => {
+                			setModalVisible(true);
+            			}}>
+                			<Text style={[styles.baseText, styles.cardHeader]}>
+                    			{item.excerciseName}
+                			</Text>
+                			<Text style={[styles.baseText, styles.cardText]}>
+                    			{`${item.weight}lbs`}
+                			</Text>
+                			<Text style={[styles.baseText, styles.cardFooter]}>
+                    			{item.muscle}
+                			</Text>
+                			<Entypo name="cross" size={24} style={styles.modalClose}  onPress={async () => {
+                    		db.runAsync(`
+                        		DELETE FROM excercises WHERE excerciseName = $value`, {$value: item.excerciseName}
+                    		)
+							db.runAsync(`
+								DELETE FROM workouts WHERE excerciseName = $value`, {$value: item.excerciseName}
+							)
+							loadExcercises();
+                		}}/>
+							<WeightForm item={item} modalVisible={modalVisible} onCloseModal={() => setModalVisible(false)}/>
+            			</TouchableOpacity>
+						
+					// </SQLiteProvider>
 						
 				)}
 			/>
@@ -141,6 +155,14 @@ const styles = StyleSheet.create({
 		borderRadius: 15,
 		padding: 15,
 	},
+	modalClose: {
+        position: 'absolute',
+        color: "white",
+        alignSelf: 'flex-end',  
+        top: 20,
+        right: 20,
+        zIndex: 1000,
+    },
 	cardHeader: {
 		fontSize: 15,
 		textAlign: "left",

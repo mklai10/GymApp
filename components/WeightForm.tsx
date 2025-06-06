@@ -1,26 +1,55 @@
 import Entypo from '@expo/vector-icons/Entypo';
 import { useSQLiteContext } from "expo-sqlite";
-import { useState } from "react";
-import { Alert, FlatList, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { MyChart } from './Chart';
 import { Excercise } from './ExcerciseList';
 
-export function WeightForm(item: Excercise) {
-    const [modalVisible, setModalVisible] = useState(false);
+export interface Set {
+    excerciseName: string;
+    id: number;
+    weight: string;
+    setNum: string;
+    reps: string,
+    day: number;
+    month: number;
+    year: number;
+}
+
+// export function WeightForm({item, excercises}:{item:Excercise, excercises:Excercise[]}) {
+// export function WeightForm({item, onDeleteExcercise}:{item:Excercise, onDeleteExcercise:any}) {
+export function WeightForm({item, modalVisible, onCloseModal} : {item:Excercise, modalVisible:boolean, onCloseModal:any}) {
     const [numOfSets, setNumOfSets] = useState("");
     const [inputSets, setInputSets] = useState<Set[]>([]);
-    
-    interface Set {
-        excerciseName: string;
-        id: number;
-        weight: string;
-        setNum: string;
-        reps: string,
-        date: string;
-    }
+    const [isLoading, setIsLoading] = useState(true);
+    const [workouts, setWorkouts] = useState<Set[]>([]);
 
     const inputSetsTemp: Set[] = [];
 
     const db = useSQLiteContext();
+
+    const loadWorkouts = async () => {
+        try {
+			setIsLoading(true);
+            const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value AND month = 0`, {$value: item.excerciseName});
+			// const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value ORDER BY year, month, day, setNUM ASC`, {$value: item.excerciseName});
+            // const results = await db.getAllAsync(`SELECT * FROM workouts`);
+            console.log(results);
+			setWorkouts(results as Set[]);
+		} catch (error) {
+			console.error("Database error", error);
+		} finally {
+			setIsLoading(false);
+		}
+    }
+
+    useEffect(() => {
+		loadWorkouts();
+	}, []);
+
+    if (isLoading) {
+        return <ActivityIndicator size="large" color="#0000ff" />;
+    }
 
     const handleNumOfSets = (num: string) => {
         try {
@@ -35,7 +64,9 @@ export function WeightForm(item: Excercise) {
                     weight: "",
                     setNum: `${i}`,
                     reps: "",
-                    date: ""
+                    day: 0,
+                    month: 0,
+                    year: 0,
                 }
                 inputSetsTemp.push(tempSet);
             }
@@ -44,15 +75,6 @@ export function WeightForm(item: Excercise) {
             Alert.alert("Error", (error as Error).message);   
         }
     }
-
-    // const loadSets = async () => {
-    //     try {
-	// 		const results = await db.getAllAsync(`SELECT * FROM "${item.excerciseName}" GROUP BY date`)
-    //         setSets(results as Set[]);
-	// 	} catch (error) {
-	// 		console.error("Database error", error);
-	// 	}
-    // }
 
     const handleSubmit = async () => {
         try {
@@ -67,14 +89,16 @@ export function WeightForm(item: Excercise) {
             })
 
             inputSets.forEach(async (set) => {
+                const date = new Date();
+                const newDate = `${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`
                 await db.runAsync(
-                    `INSERT INTO "${item.excerciseName}" (excerciseName, weight, setNum, reps, date) VALUES (?, ?, ?, ?, ?)`,
-                    [set.excerciseName, set.weight, set.setNum, set.reps, Date()]
+                    `INSERT INTO workouts (excerciseName, weight, setNum, reps, day, month, year) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                    [set.excerciseName, set.weight, set.setNum, set.reps, date.getDate(), date.getMonth() + 1, date.getFullYear()]
                 );
             })
            
 
-            Alert.alert("Success", "Excercise added successfully");
+            Alert.alert("Success", "Workout added successfully");
             setNumOfSets("");
         } catch (error) {
             Alert.alert("Error", (error as Error).message);
@@ -83,26 +107,13 @@ export function WeightForm(item: Excercise) {
     
     return (
         <View style={styles.page}>
-            <TouchableOpacity style={styles.excerciseCard} onPress={() => {
-                setModalVisible(true);
-            }}>
-                <Text style={[styles.baseText, styles.cardHeader]}>
-                    {item.excerciseName}
-                </Text>
-                <Text style={[styles.baseText, styles.cardText]}>
-                    {`${item.weight}lbs`}
-                </Text>
-                <Text style={[styles.baseText, styles.cardFooter]}>
-                    {item.muscle}
-                </Text>
-            </TouchableOpacity>
             <Modal
                 animationType="fade"
                 transparent={true}
                 visible={modalVisible}
                 onRequestClose={() => {
                     Alert.alert("Modal has been closed");
-                    setModalVisible(!modalVisible);
+                    onCloseModal();
                 }}
                 style={styles.page}
             >
@@ -112,13 +123,15 @@ export function WeightForm(item: Excercise) {
                         showsHorizontalScrollIndicator={true} 
                         contentContainerStyle={{columnGap: 100}}
                     >
-                <View style={[styles.modalContainer, styles.firstCard]}>
-                    <Entypo name="cross" size={24} style={styles.modalClose}  onPress={() => setModalVisible(false)}/>
+                        {/* <RepInputModal item={item} onClose={(thhing: boolean) => setModalVisible(thhing)} /> */}
+                <KeyboardAvoidingView style={[styles.modalContainer, styles.firstCard]} behavior='height'>
+                    <Entypo name="cross" size={24} style={styles.modalClose}  onPress={() => onCloseModal()}/>
                     <Text style={[styles.cardText, styles.baseText]}>
                         {item.excerciseName}
                     </Text>
                     <TextInput
                         style={styles.input}
+                        keyboardType='numeric'
                         placeholder="Number of Sets"
                         value={numOfSets}
                         onChangeText={(num) => {
@@ -135,6 +148,7 @@ export function WeightForm(item: Excercise) {
                             <View style={styles.setContainer}>
                                 <TextInput 
                                     style={[styles.setInput]}
+                                    keyboardType='numeric'
                                     placeholder='Weight'
                                     value={`${item.weight}`}
                                     onChangeText={(text) => {
@@ -143,6 +157,7 @@ export function WeightForm(item: Excercise) {
                                 />
                                 <TextInput 
                                     style={[styles.setInput]}
+                                    keyboardType='numeric'
                                     placeholder='Reps'
                                     value={`${item.reps}`}
                                     onChangeText={(text) => {
@@ -154,24 +169,33 @@ export function WeightForm(item: Excercise) {
                     />
                     <TouchableOpacity
                         style={styles.addExcerciseButton}
-                        onPress={async () =>  handleSubmit()}
+                        onPress={async () =>  {
+                            handleSubmit();
+                            setInputSets([]);
+                            loadWorkouts();
+                        }}
                     >
                         <Text style={styles.baseText}>
-                            Add Worked
+                            Add Workout
                         </Text>
                     </TouchableOpacity>
-                </View>
+                </KeyboardAvoidingView>
                 <View style={styles.modalContainer}>
-                    <Entypo name="cross" size={24} style={styles.modalClose}  onPress={() => setModalVisible(false)}/>
+                    <Entypo name="cross" size={24} style={styles.modalClose}  onPress={() => onCloseModal()}/>
                     <Text style={[styles.cardText, styles.baseText]}>
-                        {item.excerciseName}
+                        Workouts
                     </Text>
-                    {/* <TextInput
-                        style={styles.input}
-                        placeholder="Weight"
-                        value={form.weight}
-                        onChangeText={(text) => setForm({ ...form, weight: text })}
-                    /> */}
+                    <FlatList 
+                        showsVerticalScrollIndicator={false}
+				        data={workouts}
+                        extraData={inputSets}
+                        keyExtractor={(item) => `${item.id}`}
+                        renderItem={({ item }) => (
+                            <Text style={styles.baseText}>
+                                Set: {item.setNum}, Weight: {item.weight}, Reps: {item.reps}, Date: {item.day}/{item.month}/{item.year}
+                            </Text>
+                        )}
+                    />
                     <TouchableOpacity
                         style={styles.addExcerciseButton}
                         onPress={async () =>  handleSubmit()}
@@ -182,16 +206,11 @@ export function WeightForm(item: Excercise) {
                     </TouchableOpacity>
                 </View>
                 <View style={[styles.modalContainer, styles.lastCard]}>
-                    <Entypo name="cross" size={24} style={styles.modalClose}  onPress={() => setModalVisible(false)}/>
+                    <Entypo name="cross" size={24} style={styles.modalClose}  onPress={() => onCloseModal()}/>
                     <Text style={[styles.cardText, styles.baseText]}>
-                        {item.excerciseName}
+                        Chart
                     </Text>
-                    {/* <TextInput
-                        style={styles.input}
-                        placeholder="Weight"
-                        value={form.weight}
-                        onChangeText={(text) => setForm({ ...form, weight: text })}
-                    /> */}
+                    <MyChart workouts={workouts}/>
                     <TouchableOpacity
                         style={styles.addExcerciseButton}
                         onPress={async () =>  handleSubmit()}
@@ -260,6 +279,7 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-end',  
         top: 20,
         right: 20,
+        zIndex: 1000,
     },
     input: {
         color: "white",

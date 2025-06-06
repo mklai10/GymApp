@@ -4,7 +4,7 @@ import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
 import { Alert, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-export function ExcerciseForm() {
+export function ExcerciseForm({onSubmit} : {onSubmit:any}) {
     const [form, setForm] = useState({
         name: "",
         weight: "",
@@ -36,6 +36,7 @@ export function ExcerciseForm() {
                 weight: "",
                 muscle: "",
             });
+            onSubmit();
             setModalVisible(false);
         } catch (error) {
             Alert.alert("Error", (error as Error).message);
@@ -138,11 +139,5 @@ const styles = StyleSheet.create({
         borderRadius: 45,
         borderWidth: 1,
         borderColor: 'darkgray',
-    },
-    firstCard: {
-        marginLeft: 20,
-    },
-    lastCard: {
-        marginRight: 20,
     },
 });
