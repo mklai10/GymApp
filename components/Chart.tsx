@@ -10,10 +10,10 @@ export function MyChart({ workouts }: { workouts: Set[] }) {
 	const inter = require("@/assets/fonts/Montserrat-Regular.ttf");
 	const font = useFont(inter);
 
-	const data: {weight: number, date: number, month: number, year: number}[] = [];
+	const data: {id: number, weight: number, date: number, month: number, year: number}[] = [];
 
 	workouts.forEach((set) => {
-		data.push({ weight: +set.weight, date: set.day, month: set.month, year: set.year});
+		data.push({ id: set.id, weight: +set.weight, date: set.day, month: set.month, year: set.year});
 	});
 
 	return (
@@ -21,7 +21,7 @@ export function MyChart({ workouts }: { workouts: Set[] }) {
 			<CartesianChart
 				data={data}
 				// data={DATA}
-				xKey="date"
+				xKey="id"
 				yKeys={["weight"]}
 				axisOptions={{ font, labelColor: "white", lineColor: "white", formatYLabel: ((weight) => `${weight}lbs`), labelPosition: 'outset'}}
 			>

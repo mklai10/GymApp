@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
 	ActivityIndicator,
 	FlatList,
-	RefreshControl,
 	StyleSheet,
 	Text,
 	TextInput,
@@ -26,6 +25,7 @@ export function ExcerciseList({needsLoad} : {needsLoad:number}) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [filteredExcercises, setFilteredExcercises] = useState<Excercise[]>([]);
 	const [modalVisible, setModalVisible] = useState(false);
+	const [excercise, setExcercise] = useState<Excercise>({excerciseName: "", id: 0, muscle: "", weight: 0});
 	
 	const db = useSQLiteContext();
 
@@ -40,6 +40,19 @@ export function ExcerciseList({needsLoad} : {needsLoad:number}) {
 			setIsLoading(false);
 		}
 	};
+
+	// const loadWorkouts = async (item: Excercise) => {
+    //     try {
+    //         const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value ORDER BY id DESC`, {$value: item.excerciseName});
+	// 		// const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value ORDER BY year, month, day, setNUM ASC`, {$value: item.excerciseName});
+    //         // const results = await db.getAllAsync(`SELECT * FROM workouts`);
+	// 		setWorkouts(results as Set[]);
+	// 	} catch (error) {
+	// 		console.error("Database error", error);
+	// 	} finally {
+	// 		setIsReadyToSelect(true);
+	// 	}
+    // }
 
 	useEffect(() => {
 		loadExcercises();
@@ -71,35 +84,22 @@ export function ExcerciseList({needsLoad} : {needsLoad:number}) {
 				showsVerticalScrollIndicator={false}
 				data={searchQuery.length > 0 ? filteredExcercises:excercises}
 				extraData={needsLoad}
-				refreshControl={
-					<RefreshControl refreshing={isLoading} onRefresh={loadExcercises} />
-				}
 				keyExtractor={(item) => item.id as unknown as string}
 				renderItem={({ item }) => (
-					// <SQLiteProvider
-					// 	databaseName="weightliftingDatabase.db"
-					// 	onInit={async (db) => {
-					// 		await db.execAsync(`
-					// 			CREATE TABLE IF NOT EXISTS "${item.excerciseName}" (id INTEGER PRIMARY KEY AUTOINCREMENT, excerciseName TEXT NOT NULL, weight INTEGER NOT NULL, setNum INTEGER NOT NULL, reps INTEGER NOT NULL, date TEXT NOT NULL);
-					// 			PRAGMA journal_mode = WAL;
-					// 		`);
-					// 		const results = await db.getAllAsync(`SELECT * FROM "${item.excerciseName}"`);
-					// 		console.log(results);
-					// 	}}
-					// >
-						<TouchableOpacity style={styles.excerciseCard} onPress={() => {
-                			setModalVisible(true);
-            			}}>
-                			<Text style={[styles.baseText, styles.cardHeader]}>
-                    			{item.excerciseName}
-                			</Text>
-                			<Text style={[styles.baseText, styles.cardText]}>
-                    			{`${item.weight}lbs`}
-                			</Text>
-                			<Text style={[styles.baseText, styles.cardFooter]}>
-                    			{item.muscle}
-                			</Text>
-                			<Entypo name="cross" size={24} style={styles.modalClose}  onPress={async () => {
+					<TouchableOpacity style={styles.excerciseCard} onPress={() => {
+                		setModalVisible(true);
+						setExcercise(item);
+            		}}>
+                		<Text style={[styles.baseText, styles.cardHeader]}>
+                    		{item.excerciseName}
+                		</Text>
+                		<Text style={[styles.baseText, styles.cardText]}>
+                    		{`${item.weight}lbs`}
+                		</Text>
+                		<Text style={[styles.baseText, styles.cardFooter]}>
+                    		{item.muscle}
+                		</Text>
+                		<Entypo name="cross" size={24} style={styles.modalClose}  onPress={async () => {
                     		db.runAsync(`
                         		DELETE FROM excercises WHERE excerciseName = $value`, {$value: item.excerciseName}
                     		)
@@ -108,11 +108,12 @@ export function ExcerciseList({needsLoad} : {needsLoad:number}) {
 							)
 							loadExcercises();
                 		}}/>
-							<WeightForm item={item} modalVisible={modalVisible} onCloseModal={() => setModalVisible(false)}/>
-            			</TouchableOpacity>
-						
-					// </SQLiteProvider>
-						
+						<WeightForm 
+							item={excercise as Excercise} 
+							modalVisible={modalVisible} 
+							onCloseModal={() => setModalVisible(false)} 
+						/>
+            		</TouchableOpacity>
 				)}
 			/>
 		</View>

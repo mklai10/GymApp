@@ -30,7 +30,7 @@ export default function index() {
         `);
         // const results = await db.getAllAsync(`SELECT * FROM excercises`);
         const results = await db.getAllAsync(`SELECT name FROM sqlite_master WHERE type='table'`);
-        console.log(results);
+        // console.log(results);
       }}
       options={{ useNewConnection: false }}
     >

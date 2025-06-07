@@ -1,7 +1,7 @@
 import Entypo from '@expo/vector-icons/Entypo';
 import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, KeyboardAvoidingView, Modal, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { MyChart } from './Chart';
 import { Excercise } from './ExcerciseList';
 
@@ -16,40 +16,35 @@ export interface Set {
     year: number;
 }
 
-// export function WeightForm({item, excercises}:{item:Excercise, excercises:Excercise[]}) {
-// export function WeightForm({item, onDeleteExcercise}:{item:Excercise, onDeleteExcercise:any}) {
-export function WeightForm({item, modalVisible, onCloseModal} : {item:Excercise, modalVisible:boolean, onCloseModal:any}) {
+export function WeightForm({item, modalVisible, onCloseModal} : 
+    {item:Excercise, modalVisible:boolean, onCloseModal:any}) {
     const [numOfSets, setNumOfSets] = useState("");
     const [inputSets, setInputSets] = useState<Set[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [workouts, setWorkouts] = useState<Set[]>([]);
+    const [needsLoading, setNeedsLoading] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
 
     const inputSetsTemp: Set[] = [];
 
-    const db = useSQLiteContext();
+    const db = useSQLiteContext(); 
 
     const loadWorkouts = async () => {
+        console.log("loaded");
         try {
-			setIsLoading(true);
-            const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value AND month = 0`, {$value: item.excerciseName});
-			// const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value ORDER BY year, month, day, setNUM ASC`, {$value: item.excerciseName});
-            // const results = await db.getAllAsync(`SELECT * FROM workouts`);
-            console.log(results);
+            setIsLoading(true);
+            const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value ORDER BY id DESC`, {$value: item.excerciseName});
 			setWorkouts(results as Set[]);
 		} catch (error) {
 			console.error("Database error", error);
 		} finally {
-			setIsLoading(false);
-		}
+            setIsLoading(false);
+            setNeedsLoading((count) => count + 1);
+        }
     }
 
     useEffect(() => {
-		loadWorkouts();
-	}, []);
-
-    if (isLoading) {
-        return <ActivityIndicator size="large" color="#0000ff" />;
-    }
+        loadWorkouts();
+    }, [item]);
 
     const handleNumOfSets = (num: string) => {
         try {
@@ -78,7 +73,10 @@ export function WeightForm({item, modalVisible, onCloseModal} : {item:Excercise,
 
     const handleSubmit = async () => {
         try {
-            
+            if (!numOfSets) {
+                throw new Error("Input the number of sets");
+            }
+
             inputSets.forEach((set) => {
                 if (!set.weight || !set.reps) {
                     throw new Error("All fields are required");
@@ -88,17 +86,16 @@ export function WeightForm({item, modalVisible, onCloseModal} : {item:Excercise,
                 }
             })
 
-            inputSets.forEach(async (set) => {
+            for (let i = 0; i<inputSets.length; i++) {
                 const date = new Date();
                 const newDate = `${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`
-                await db.runAsync(
+                 await db.runAsync(
                     `INSERT INTO workouts (excerciseName, weight, setNum, reps, day, month, year) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                    [set.excerciseName, set.weight, set.setNum, set.reps, date.getDate(), date.getMonth() + 1, date.getFullYear()]
+                    [inputSets[i].excerciseName, inputSets[i].weight, inputSets[i].setNum, inputSets[i].reps, date.getDate(), date.getMonth() + 1, date.getFullYear()]
                 );
-            })
+            }
            
-
-            Alert.alert("Success", "Workout added successfully");
+            // Alert.alert("Success", "Workout added successfully");
             setNumOfSets("");
         } catch (error) {
             Alert.alert("Error", (error as Error).message);
@@ -123,7 +120,6 @@ export function WeightForm({item, modalVisible, onCloseModal} : {item:Excercise,
                         showsHorizontalScrollIndicator={true} 
                         contentContainerStyle={{columnGap: 100}}
                     >
-                        {/* <RepInputModal item={item} onClose={(thhing: boolean) => setModalVisible(thhing)} /> */}
                 <KeyboardAvoidingView style={[styles.modalContainer, styles.firstCard]} behavior='height'>
                     <Entypo name="cross" size={24} style={styles.modalClose}  onPress={() => onCloseModal()}/>
                     <Text style={[styles.cardText, styles.baseText]}>
@@ -168,11 +164,11 @@ export function WeightForm({item, modalVisible, onCloseModal} : {item:Excercise,
                         )}
                     />
                     <TouchableOpacity
-                        style={styles.addExcerciseButton}
+                        style={styles.addWorkoutButton}
                         onPress={async () =>  {
                             handleSubmit();
-                            setInputSets([]);
                             loadWorkouts();
+                            setInputSets([]);
                         }}
                     >
                         <Text style={styles.baseText}>
@@ -188,7 +184,11 @@ export function WeightForm({item, modalVisible, onCloseModal} : {item:Excercise,
                     <FlatList 
                         showsVerticalScrollIndicator={false}
 				        data={workouts}
-                        extraData={inputSets}
+                        // extraData={[inputSets, numOfSets]}
+                        extraData={[needsLoading, workouts]}
+                        refreshControl={
+                            <RefreshControl refreshing={isLoading} onRefresh={loadWorkouts}/>
+                        }
                         keyExtractor={(item) => `${item.id}`}
                         renderItem={({ item }) => (
                             <Text style={styles.baseText}>
@@ -196,14 +196,14 @@ export function WeightForm({item, modalVisible, onCloseModal} : {item:Excercise,
                             </Text>
                         )}
                     />
-                    <TouchableOpacity
-                        style={styles.addExcerciseButton}
+                    {/* <TouchableOpacity
+                        style={styles.addWorkoutButton}
                         onPress={async () =>  handleSubmit()}
-                    >
-                        <Text style={styles.baseText}>
-                            Add Worked
+                    > */}
+                        <Text style={styles.cardFooter}>
+                            Pull Down To Refresh
                         </Text>
-                    </TouchableOpacity>
+                    {/* </TouchableOpacity> */}
                 </View>
                 <View style={[styles.modalContainer, styles.lastCard]}>
                     <Entypo name="cross" size={24} style={styles.modalClose}  onPress={() => onCloseModal()}/>
@@ -212,7 +212,7 @@ export function WeightForm({item, modalVisible, onCloseModal} : {item:Excercise,
                     </Text>
                     <MyChart workouts={workouts}/>
                     <TouchableOpacity
-                        style={styles.addExcerciseButton}
+                        style={styles.addWorkoutButton}
                         onPress={async () =>  handleSubmit()}
                     >
                         <Text style={styles.baseText}>
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
 	cardFooter: {
 		color: "darkgray",
 		fontSize: 12,
-		textAlign: "left",
+		textAlign: "center",
 	},
     modalScrollContainer: {
         width: '100%',
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         marginBottom: 10,
     },
-    addExcerciseButton: {
+    addWorkoutButton: {
         backgroundColor: 'black',
         position: 'absolute',
         color: "white",
