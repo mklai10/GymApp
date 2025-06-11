@@ -32,7 +32,8 @@ export function WeightForm({item, modalVisible, onCloseModal} :
         console.log("loaded");
         try {
             setIsLoading(true);
-            const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value ORDER BY id DESC`, {$value: item.excerciseName});
+            const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value ORDER BY year DESC, month DESC, day DESC, setNum DESC`, {$value: item.excerciseName});
+            console.log(results);
 			setWorkouts(results as Set[]);
 		} catch (error) {
 			console.error("Database error", error);
@@ -191,9 +192,20 @@ export function WeightForm({item, modalVisible, onCloseModal} :
                         }
                         keyExtractor={(item) => `${item.id}`}
                         renderItem={({ item }) => (
-                            <Text style={styles.baseText}>
-                                Set: {item.setNum}, Weight: {item.weight}, Reps: {item.reps}, Date: {item.day}/{item.month}/{item.year}
-                            </Text>
+                            <View style={styles.setTextGroup}>
+                                <Text style={styles.setText}>
+                                    Set: {item.setNum} 
+                                </Text>
+                                <Text style={styles.setText}>
+                                    Weight: {item.weight} 
+                                </Text>
+                                <Text style={styles.setText}>
+                                    Reps: {item.reps} 
+                                </Text>
+                                <Text style={styles.setText}>
+                                    Date: {item.day}/{item.month}/{item.year} 
+                                </Text>
+                            </View>
                         )}
                     />
                     {/* <TouchableOpacity
@@ -307,12 +319,24 @@ const styles = StyleSheet.create({
     },
     lastCard: {
         marginRight: 20,
+        padding: 5,
+        paddingBottom: 20,
     },
     setsListContainer: {
 		width: "100%",
 		height: "100%",
 		borderColor: "darkgray",
 	},
+    setTextGroup: {
+        width: "100%",
+        flexDirection: 'row',
+    },
+    setText: {
+        color: 'white',
+        flexDirection: 'row',
+        textAlign: 'center',
+        padding: 5,
+    },
     setContainer: {
         width: "100%",
 		height: 120,

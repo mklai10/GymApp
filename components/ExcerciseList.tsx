@@ -147,14 +147,17 @@ const styles = StyleSheet.create({
 		height: 500,
 		borderWidth: 1,
 		borderColor: "darkgray",
+		alignContent: 'center',
 	},
 	excerciseCard: {
-		width: "100%",
+		width: "90%",
 		height: 120,
 		borderColor: "darkgray",
 		borderWidth: 1,
 		borderRadius: 15,
 		padding: 15,
+		marginLeft: "5%",
+		marginBottom: "2%",
 	},
 	modalClose: {
         position: 'absolute',

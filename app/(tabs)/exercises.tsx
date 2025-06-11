@@ -23,6 +23,8 @@ export default function index() {
           // INSERT INTO workouts (excerciseName, weight, setNum, reps, day, month, year) VALUES ("Bench", 165, 1, 8, 1, 1, 2023);
           // INSERT INTO workouts (excerciseName, weight, setNum, reps, day, month, year) VALUES ("Bench", 185, 1, 8, 15, 1, 2023);
           // INSERT INTO workouts (excerciseName, weight, setNum, reps, day, month, year) VALUES ("Bench", 205, 1, 8, 30, 1, 2023);
+          // INSERT INTO workouts (excerciseName, weight, setNum, reps, day, month, year) VALUES ("A", 205, 1, 8, 1, 1, 2023);
+          // INSERT INTO workouts (excerciseName, weight, setNum, reps, day, month, year) VALUES ("A", 205, 1, 8, 1, 12, 2023);
         await db.execAsync(`
           CREATE TABLE IF NOT EXISTS excercises (id INTEGER PRIMARY KEY AUTOINCREMENT,excerciseName TEXT NOT NULL UNIQUE, weight INTEGER, muscle TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS workouts (id INTEGER PRIMARY KEY AUTOINCREMENT, excerciseName TEXT NOT NULL, weight INTEGER NOT NULL, setNum INTEGER NOT NULL, reps INTEGER NOT NULL, day INTEGER NOT NULL, month INTEGER NOT NULL, year INTEGER NOT NULL);
