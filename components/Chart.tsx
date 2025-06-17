@@ -28,11 +28,15 @@ export function MyChart({ workouts }: { workouts: Set[] }) {
 	});
 
 	const minDate = () => {
-		return data[data.length-1].date - 150000
+		let variance = (data[0].date - data[data.length-1].date) * 0.1;
+		return data[data.length-1].date - variance;
+		// return data[data.length-1].date - 150000000
 	}
 
 	const maxDate = () => {
-		return data[0].date + 250000
+		let variance = (data[0].date - data[data.length-1].date) * 0.15;
+		return data[0].date + variance;
+		// return data[0].date + 250000000
 	}
 	
 	const minWeight = () => {
@@ -103,7 +107,7 @@ export function MyChart({ workouts }: { workouts: Set[] }) {
 								points={points.weight}
 								color="white"
 								strokeWidth={3}
-								curveType="natural"
+								curveType="linear"
 							/>
 							{isActive && (
 								<View>

@@ -23,17 +23,48 @@ export function WeightForm({item, modalVisible, onCloseModal} :
     const [workouts, setWorkouts] = useState<Set[]>([]);
     const [needsLoading, setNeedsLoading] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [chartTitle, setChartTitle] = useState("Chart");
 
     const inputSetsTemp: Set[] = [];
 
     const db = useSQLiteContext(); 
 
     const loadWorkouts = async () => {
-        console.log("loaded");
         try {
             setIsLoading(true);
             const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value ORDER BY year DESC, month DESC, day DESC, setNum DESC`, {$value: item.excerciseName});
-            console.log(results);
+            // console.log(results);
+			setWorkouts(results as Set[]);
+		} catch (error) {
+			console.error("Database error", error);
+		} finally {
+            setIsLoading(false);
+            setNeedsLoading((count) => count + 1);
+        }
+    }
+
+    const loadYear = async () => {
+        try {
+            setIsLoading(true);
+            let currentYear = (new Date()).getFullYear();
+            const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value AND year = $year ORDER BY month DESC, day DESC, setNum DESC`, {$value: item.excerciseName, $year: currentYear});
+            // console.log(results);
+			setWorkouts(results as Set[]);
+		} catch (error) {
+			console.error("Database error", error);
+		} finally {
+            setIsLoading(false);
+            setNeedsLoading((count) => count + 1);
+        }
+    }
+
+    const loadMonth = async () => {
+        try {
+            setIsLoading(true);
+            let currentYear = (new Date()).getFullYear();
+            let currentMonth = (new Date()).getMonth() + 1;
+            const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value AND year = $year AND month = $month ORDER BY day DESC, setNum DESC`, {$value: item.excerciseName, $year: currentYear, $month: currentMonth});
+            // console.log(results);
 			setWorkouts(results as Set[]);
 		} catch (error) {
 			console.error("Database error", error);
@@ -95,8 +126,6 @@ export function WeightForm({item, modalVisible, onCloseModal} :
                     [inputSets[i].excerciseName, inputSets[i].weight, inputSets[i].setNum, inputSets[i].reps, date.getDate(), date.getMonth() + 1, date.getFullYear()]
                 );
             }
-           
-            // Alert.alert("Success", "Workout added successfully");
             setNumOfSets("");
         } catch (error) {
             Alert.alert("Error", (error as Error).message);
@@ -185,7 +214,6 @@ export function WeightForm({item, modalVisible, onCloseModal} :
                     <FlatList 
                         showsVerticalScrollIndicator={false}
 				        data={workouts}
-                        // extraData={[inputSets, numOfSets]}
                         extraData={[needsLoading, workouts]}
                         refreshControl={
                             <RefreshControl refreshing={isLoading} onRefresh={loadWorkouts}/>
@@ -208,29 +236,42 @@ export function WeightForm({item, modalVisible, onCloseModal} :
                             </View>
                         )}
                     />
-                    {/* <TouchableOpacity
-                        style={styles.addWorkoutButton}
-                        onPress={async () =>  handleSubmit()}
-                    > */}
-                        <Text style={styles.cardFooter}>
-                            Pull Down To Refresh
-                        </Text>
-                    {/* </TouchableOpacity> */}
+                    <Text style={styles.cardFooter}>
+                        Pull Down To Refresh
+                    </Text>
                 </View>
                 <View style={[styles.modalContainer, styles.lastCard]}>
                     <Entypo name="cross" size={24} style={styles.modalClose}  onPress={() => onCloseModal()}/>
                     <Text style={[styles.cardText, styles.baseText]}>
-                        Chart
+                        {chartTitle}
                     </Text>
                     <MyChart workouts={workouts}/>
-                    <TouchableOpacity
-                        style={styles.addWorkoutButton}
-                        onPress={async () =>  handleSubmit()}
-                    >
-                        <Text style={styles.baseText}>
-                            Add Worked
-                        </Text>
-                    </TouchableOpacity>
+                    <View style={styles.timeContainer}>
+                        <TouchableOpacity
+                            style={styles.timeButton}
+                            onPress={async () =>  {setChartTitle("All"); loadWorkouts()}}
+                        >
+                            <Text style={styles.baseText}>
+                                All
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.timeButton}
+                            onPress={async () =>  {setChartTitle("Year"); loadYear()}}
+                        >
+                            <Text style={styles.baseText}>
+                                Year
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.timeButton}
+                            onPress={async () =>  {setChartTitle("Month"); loadMonth()}}
+                        >
+                            <Text style={styles.baseText}>
+                                Month
+                            </Text>
+                        </TouchableOpacity>
+                    </View> 
                 </View>
                 </ScrollView>
             </Modal>
@@ -358,5 +399,22 @@ const styles = StyleSheet.create({
         borderColor: "white",
         fontSize: 25,
         textAlign: 'center',
+    },
+    timeContainer: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignContent: 'center',
+        paddingTop: 10,
+        columnGap: 10,
+    },
+    timeButton: {
+        color: "white",
+        width: '25%',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        borderRadius: 45,
+        borderWidth: 1,
+        borderColor: 'darkgray',
     }
 });
