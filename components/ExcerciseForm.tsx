@@ -50,7 +50,6 @@ export function ExcerciseForm({onSubmit} : {onSubmit:any}) {
                 transparent={true}
                 visible={modalVisible}
                 onRequestClose={() => {
-                    Alert.alert("Modal has been closed");
                     setModalVisible(!modalVisible);
                 }}
                 style={styles.page}

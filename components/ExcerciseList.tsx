@@ -59,7 +59,7 @@ export function ExcerciseList({needsLoad} : {needsLoad:number}) {
 	}, []);
 
 	if (isLoading) {
-		return <ActivityIndicator size="large" color="#0000ff" />;
+		return <ActivityIndicator size="large" color="#ffffff" />;
 	}
 
 	return (

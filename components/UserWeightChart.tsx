@@ -3,9 +3,14 @@ import { useSQLiteContext } from "expo-sqlite";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { SharedValue, useDerivedValue } from "react-native-reanimated";
 import { CartesianChart, Line, useChartPressState } from "victory-native";
-import { Set } from "./WeightForm";
 
-export function MyChart({ workouts }: { workouts: Set[] }) {
+export interface Weights {
+    id: number;
+    weight: string;
+    date: number;
+}
+
+export function UserWeightChart({ weights }: { weights: Weights[] }) {
 	const db = useSQLiteContext();
 
 	const inter = require("@/assets/fonts/Montserrat-Regular.ttf");
@@ -13,17 +18,11 @@ export function MyChart({ workouts }: { workouts: Set[] }) {
 
 	const data: { id: number; weight: number; date: number }[] = [];
 
-	workouts.forEach((set) => {
-		let month = set.month > 9 ? set.month : `0${set.month}`;
-		let day = set.day > 9 ? set.day : `0${set.day}`;
-		let setNum = +set.setNum > 9
-			? `${set.setNum.substring(0, 1)}:${set.setNum.substring(1)}`
-			: `0:${set.setNum}`;
-		let date = new Date(`${set.year}-${month}-${day}T0${setNum}0:00`).getTime()
+	weights.forEach((weight) => {
 		data.push({
-			id: set.id,
-			weight: +set.weight,
-			date: date,
+			id: weight.id,
+			weight: +weight.weight,
+			date: weight.date,
 		});
 	});
 
@@ -43,29 +42,29 @@ export function MyChart({ workouts }: { workouts: Set[] }) {
 
 	if (data.length == 0) {
 		return (
-			<View style={styles.loadingContainer}>
+			<View style={styles.chartContainer}>
 				<ActivityIndicator size="large" color="#ffffff" />
 				<Text style={styles.baseText}>
-					No Workout Data Yet
+					No Weight Data Yet
 				</Text>
 			</View>
 	)}
 
 	return (
-		<View style={{ height: "80%", width: "100%" }}>
+		<View style={styles.chartContainer}>
 			<CartesianChart
 				data={data}
 				xKey="date"
 				yKeys={["weight"]}
 				domainPadding={{top: 50, bottom: 50, left: 30, right: 45}}
 				chartPressState={state}
-				// transformState={useChartTransformState().state}
 				axisOptions={{
 					font,
 					labelColor: "white",
 					lineColor: "white",
 					// formatYLabel: (weight) => `${weight}`,
 					labelPosition: "outset",
+					tickCount: 5,
 					formatXLabel: (date) => {
 						let stringDate = new Date(date).toString();
 						return stringDate.substring(4, 11);
@@ -79,7 +78,7 @@ export function MyChart({ workouts }: { workouts: Set[] }) {
 								points={points.weight}
 								color="white"
 								strokeWidth={3}
-								curveType="natural"
+								curveType="linear"
 							/>
 							{isActive && (
 								<View>
@@ -112,9 +111,13 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginTop: 20,
 	},
-	loadingContainer: {
-		width: '100%',
-		height: 300,
+    chartContainer: {
+        height: 350,
+        width: '90%',
+        borderWidth: 1,
+        borderColor: 'darkgray',
+        borderRadius: 45,
+        padding: 30,
 		justifyContent: 'center',
-	},
+    }
 });
