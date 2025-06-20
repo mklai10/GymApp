@@ -12,6 +12,16 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      {/* <Tabs>
+        <Tabs.Screen
+          name="index"
+          options={{
+            tabBarIcon: () => (
+              <Entypo name="home" size={24} color="black" />
+            )
+          }}
+        />
+      </Tabs> */}
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>

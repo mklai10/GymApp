@@ -1,6 +1,6 @@
 import { useSQLiteContext } from "expo-sqlite";
 import AsyncStorage from "expo-sqlite/kv-store";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { UserWeightForm } from "./UserWeightForm";
 
@@ -31,6 +31,21 @@ export function WeightCard({loadWeights} : {loadWeights: any}) {
             loadWeights();
         }
     }
+
+    const retrieveWeight = async () => {
+        try {
+            const currentWeight = await AsyncStorage.getItem('weight');
+            if (currentWeight !== null) {
+                setWeight(currentWeight);
+            }
+        } catch (error) {
+             console.log("weight data couldnt be retrieved");
+        }
+    }
+
+    useEffect(() => {
+        retrieveWeight();
+    },[]);
 
     return (
         <View>
