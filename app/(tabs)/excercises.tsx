@@ -1,15 +1,16 @@
+import DimensionsProvider, { useDimensions } from "@/components/DimensionsProvider";
 import { ExcerciseForm } from "@/components/ExcerciseForm";
 import { ExcerciseList } from "@/components/ExcerciseList";
 import * as SQLite from "expo-sqlite";
-import { useState } from "react";
-import { Keyboard, StatusBar, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { memo, useState } from "react";
+import { StatusBar, StyleSheet, Text, View } from "react-native";
 
 export default function index() {
   const db = SQLite.openDatabaseSync('example.db');
   const [needsLoad, setNeedsLoad] = useState(0);
 
   return (
+    <DimensionsProvider>
     <SQLite.SQLiteProvider
       databaseName="weightliftingDatabase.db"
       onInit={async (db) => {
@@ -38,21 +39,33 @@ export default function index() {
       }}
       options={{ useNewConnection: false }}
     >
-      <SafeAreaView onStartShouldSetResponder={() => {
-          Keyboard.dismiss();
-          return false;
-        }}>
+    <ExcerciseStuff loadNum={needsLoad} onNeed={() => setNeedsLoad((load) => load + 1)}/>
+    </SQLite.SQLiteProvider>
+    </DimensionsProvider>
+  );
+}
+
+const ExcerciseStuff = memo(function ExcerciseStuff({loadNum, onNeed} : {loadNum:number, onNeed:any}) {
+  const { SafeTopMargin } = useDimensions();
+
+  return (
+    <View style={{paddingTop: SafeTopMargin}}>
         <View style={styles.pageHeaderContainer}>
           <Text style={styles.pageHeaderText}>Excercises</Text>
         </View>
         <View style={styles.page}>
-          <ExcerciseList needsLoad={needsLoad} />
-          <ExcerciseForm onSubmit={() => setNeedsLoad((load) => load + 1)}/>
+          <ExcerciseList needsLoad={loadNum} />
+          <ExcerciseForm onSubmit={() => onNeed()}/>
         </View>
-      </SafeAreaView>
-    </SQLite.SQLiteProvider>
-  );
-}
+      </View>
+  )
+})
+
+const List = memo(function List({test}:{test:number}) {
+  return (
+    <ExcerciseList needsLoad={test} />
+  )
+})
 
 const styles = StyleSheet.create({
   page: {

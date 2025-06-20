@@ -1,9 +1,9 @@
 import { DaysController } from '@/components/DaysController';
+import DimensionsProvider, { useDimensions } from '@/components/DimensionsProvider';
 import { UserWeightChart, Weights } from '@/components/UserWeightChart';
 import * as SQLite from "expo-sqlite";
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from "react-native-safe-area-context";
 
 
 export default function index() {
@@ -25,6 +25,7 @@ export default function index() {
     }, [])
 
     return (
+        <DimensionsProvider>
         <SQLite.SQLiteProvider
             databaseName="weightliftingDatabase.db"
             onInit={async (db) => {
@@ -40,7 +41,7 @@ export default function index() {
             }}
             options={{ useNewConnection: false }}
         >
-            <SafeAreaView onStartShouldSetResponder={() => {
+            {/* <SafeAreaView onStartShouldSetResponder={() => {
                 //   Keyboard.dismiss();
                   return false;
             }}>
@@ -53,11 +54,30 @@ export default function index() {
                 <View style={styles.chartContainer}>
                     <UserWeightChart weights={weights}/>
                 </View>
-            </SafeAreaView>
+            </SafeAreaView> */}
+            <FrontPage weights={weights} onLoad={() => loadWeights()}/>
         </SQLite.SQLiteProvider>
-
+        </DimensionsProvider>
     );
 }
+
+const FrontPage = memo(function FrontPage({weights, onLoad}:{weights:Weights[], onLoad:any}) {
+    const { SafeTopMargin } = useDimensions();
+
+    return (
+        <View style={{paddingTop: SafeTopMargin}}>
+            <View style={styles.pageHeaderContainer}>
+                <Text style={[styles.baseText, styles.pageHeaderText]}>
+                    My Activity
+                </Text>
+            </View>
+            <DaysController onWeightUpdate={() => onLoad()}/>
+            <View style={styles.chartContainer}>
+                <UserWeightChart weights={weights}/>
+            </View>
+        </View>
+    )
+})
 
 const styles = StyleSheet.create({
     baseText: {

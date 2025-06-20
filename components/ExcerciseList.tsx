@@ -41,25 +41,33 @@ export function ExcerciseList({needsLoad} : {needsLoad:number}) {
 		}
 	};
 
-	// const loadWorkouts = async (item: Excercise) => {
-    //     try {
-    //         const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value ORDER BY id DESC`, {$value: item.excerciseName});
-	// 		// const results = await db.getAllAsync(`SELECT * FROM workouts WHERE excerciseName = $value ORDER BY year, month, day, setNUM ASC`, {$value: item.excerciseName});
-    //         // const results = await db.getAllAsync(`SELECT * FROM workouts`);
-	// 		setWorkouts(results as Set[]);
-	// 	} catch (error) {
-	// 		console.error("Database error", error);
-	// 	} finally {
-	// 		setIsReadyToSelect(true);
-	// 	}
-    // }
-
 	useEffect(() => {
 		loadExcercises();
 	}, []);
 
 	if (isLoading) {
-		return <ActivityIndicator size="large" color="#ffffff" />;
+		return (
+			<View style={styles.page}>
+				<View style={styles.searchBar}>
+					<TextInput
+						style={[styles.baseText, styles.searchText]}
+						value={searchQuery}
+						placeholder="Search Here"
+						onChangeText={(newName) => {
+							setSearchQuery(newName);
+							let filtered  = excercises.filter((excercise) => {
+							return excercise.excerciseName.toLowerCase().includes(newName.toLowerCase());
+						});
+						setFilteredExcercises(filtered);
+					}}
+					autoCorrect={false}
+				/>
+			</View>
+			<View style={[styles.excerciseContainer, {justifyContent: 'center'}]}>
+				<ActivityIndicator size="large" color="#ffffff"/>
+			</View>
+			</View>		
+		);
 	}
 
 	return (
