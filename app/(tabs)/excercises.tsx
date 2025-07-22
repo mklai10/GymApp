@@ -14,7 +14,6 @@ export interface Excercise {
 export default function index() {
   const db = SQLite.openDatabaseSync('example.db');
   const [needsLoad, setNeedsLoad] = useState(0);
-  const [updatedPr, setUpdatedPr] = useState(0);
 
   return (
     <DimensionsProvider>
