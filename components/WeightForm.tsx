@@ -16,8 +16,8 @@ export interface Set {
     year: number;
 }
 
-export function WeightForm({item, modalVisible, onCloseModal} : 
-    {item:Excercise, modalVisible:boolean, onCloseModal:any}) {
+export function WeightForm({item, modalVisible, onCloseModal, onUpdatePR} : 
+    {item:Excercise, modalVisible:boolean, onCloseModal:any, onUpdatePR:any}) {
     const [numOfSets, setNumOfSets] = useState("");
     const [inputSets, setInputSets] = useState<Set[]>([]);
     const [workouts, setWorkouts] = useState<Set[]>([]);
@@ -125,6 +125,18 @@ export function WeightForm({item, modalVisible, onCloseModal} :
                     `INSERT INTO workouts (excerciseName, weight, setNum, reps, day, month, year) VALUES (?, ?, ?, ?, ?, ?, ?)`,
                     [inputSets[i].excerciseName, inputSets[i].weight, inputSets[i].setNum, inputSets[i].reps, date.getDate(), date.getMonth() + 1, date.getFullYear()]
                 );
+
+                const pr = await db.getFirstAsync(
+                    `SELECT * FROM excercises WHERE excerciseName = $name`,
+                    {$name: inputSets[i].excerciseName}
+                );
+                if ((pr as Excercise).weight < +inputSets[i].weight) {
+                    await db.runAsync(
+                        `UPDATE excercises SET weight = $weight WHERE excerciseName = $name`,
+                        {$weight: +inputSets[i].weight, $name: inputSets[i].excerciseName}
+                    );
+                    onUpdatePR();
+                }
             }
             setNumOfSets("");
         } catch (error) {

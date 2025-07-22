@@ -64,7 +64,7 @@ export function ExcerciseForm({onSubmit} : {onSubmit:any}) {
                     />
                     <TextInput
                         style={styles.input}
-                        placeholder="Weight"
+                        placeholder="PR"
                         value={form.weight}
                         onChangeText={(text) => setForm({ ...form, weight: text })}
                     />

@@ -5,9 +5,16 @@ import * as SQLite from "expo-sqlite";
 import { memo, useState } from "react";
 import { StatusBar, StyleSheet, Text, View } from "react-native";
 
+export interface Excercise {
+  id: number;
+  excerciseName: string;
+  weight: number;
+}
+
 export default function index() {
   const db = SQLite.openDatabaseSync('example.db');
   const [needsLoad, setNeedsLoad] = useState(0);
+  const [updatedPr, setUpdatedPr] = useState(0);
 
   return (
     <DimensionsProvider>
@@ -54,18 +61,18 @@ const ExcerciseStuff = memo(function ExcerciseStuff({loadNum, onNeed} : {loadNum
           <Text style={styles.pageHeaderText}>Excercises</Text>
         </View>
         <View style={styles.page}>
-          <ExcerciseList needsLoad={loadNum} />
+          <ExcerciseList needsLoad={loadNum} onUpdatePR={() => onNeed()}/>
           <ExcerciseForm onSubmit={() => onNeed()}/>
         </View>
       </View>
   )
 })
 
-const List = memo(function List({test}:{test:number}) {
-  return (
-    <ExcerciseList needsLoad={test} />
-  )
-})
+// const List = memo(function List({test}:{test:number}) {
+//   return (
+//     <ExcerciseList needsLoad={test} onUpdatePR={() => }/>
+//   )
+// })
 
 const styles = StyleSheet.create({
   page: {

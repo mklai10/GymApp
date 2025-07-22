@@ -8,10 +8,10 @@ export function DaysController({onWeightUpdate} : {onWeightUpdate:any}) {
     const [dayWent, setDayWent] = useState(0);
     const [wentToday, setWentToday] = useState(false);
 
-    const checkWentToday = () => {
+    const checkWentToday = (date: number) => {
         const todaysDate = new Date();
-        const currentDayWent = new Date(dayWent);
-        if (todaysDate.getDate != currentDayWent.getDate || todaysDate.getMonth != currentDayWent.getMonth || todaysDate.getFullYear != currentDayWent.getFullYear) {
+        const currentDayWent = new Date(date);
+        if (todaysDate.getDate() != currentDayWent.getDate() || todaysDate.getMonth() != currentDayWent.getMonth() || todaysDate.getFullYear() != currentDayWent.getFullYear()) {
             setWentToday(false);
         }
     }
@@ -25,6 +25,7 @@ export function DaysController({onWeightUpdate} : {onWeightUpdate:any}) {
             const date = await AsyncStorage.getItem('dayWent');
             if (date !== null) {
                 setDayWent(+date);
+                checkWentToday(+date);
             }
             const went = await AsyncStorage.getItem('wentToday');
             if (went !== null) {
@@ -32,10 +33,11 @@ export function DaysController({onWeightUpdate} : {onWeightUpdate:any}) {
             }
         } catch (error) {
             console.log("data couldnt be retrieved")
-        }
+        }  
     };
 
     const setAndStoreData = async (date: number, went: boolean, days: number) => {
+        console.log(new Date(date));
         try {
             await AsyncStorage.setItem(
                 'daysInGym',
@@ -57,9 +59,24 @@ export function DaysController({onWeightUpdate} : {onWeightUpdate:any}) {
         }
     };
 
+    const setData = async () => {
+        try {
+            await AsyncStorage.setItem(
+                'dayWent',
+                "1703221230151",
+            );
+            await AsyncStorage.setItem(
+                'wentToday',
+                "false",
+            );
+        } catch (error) {
+            console.log("data couldnt be stored");
+        }
+    }
+
     useEffect(() => {
+        // setData();
         retrieveData();
-        checkWentToday();
     },[]);
 
 	return (

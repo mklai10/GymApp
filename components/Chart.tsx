@@ -79,7 +79,7 @@ export function MyChart({ workouts }: { workouts: Set[] }) {
 								points={points.weight}
 								color="white"
 								strokeWidth={3}
-								curveType="natural"
+								curveType="linear"
 							/>
 							{isActive && (
 								<View>

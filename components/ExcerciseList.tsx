@@ -19,7 +19,7 @@ export interface Excercise {
 		weight: number;
 }
 
-export function ExcerciseList({needsLoad} : {needsLoad:number}) {
+export function ExcerciseList({needsLoad, onUpdatePR} : {needsLoad:number, onUpdatePR:any}) {
 	const [excercises, setExcercises] = useState<Excercise[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -119,6 +119,7 @@ export function ExcerciseList({needsLoad} : {needsLoad:number}) {
 						<WeightForm 
 							item={excercise as Excercise} 
 							modalVisible={modalVisible} 
+							onUpdatePR={() => onUpdatePR()}
 							onCloseModal={() => setModalVisible(false)} 
 						/>
             		</TouchableOpacity>
