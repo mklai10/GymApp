@@ -232,17 +232,17 @@ export function WeightForm({item, modalVisible, onCloseModal, onUpdatePR} :
                         }
                         keyExtractor={(item) => `${item.id}`}
                         renderItem={({ item }) => (
-                            <View style={styles.setTextGroup}>
-                                <Text style={styles.setText}>
+                            <View style={styles.workoutsTextGroup}>
+                                <Text style={styles.workoutText}>
                                     Set: {item.setNum} 
                                 </Text>
-                                <Text style={styles.setText}>
+                                <Text style={styles.workoutText}>
                                     Weight: {item.weight} 
                                 </Text>
-                                <Text style={styles.setText}>
+                                <Text style={styles.workoutText}>
                                     Reps: {item.reps} 
                                 </Text>
-                                <Text style={styles.setText}>
+                                <Text style={styles.workoutText}>
                                     Date: {item.day}/{item.month}/{item.year} 
                                 </Text>
                             </View>
@@ -380,11 +380,11 @@ const styles = StyleSheet.create({
 		height: "100%",
 		borderColor: "darkgray",
 	},
-    setTextGroup: {
+    workoutsTextGroup: {
         width: "100%",
         flexDirection: 'row',
     },
-    setText: {
+    workoutText: {
         color: 'white',
         flexDirection: 'row',
         textAlign: 'center',

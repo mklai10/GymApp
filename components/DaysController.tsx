@@ -11,6 +11,7 @@ export function DaysController({onWeightUpdate} : {onWeightUpdate:any}) {
     const checkWentToday = (date: number) => {
         const todaysDate = new Date();
         const currentDayWent = new Date(date);
+        console.log(currentDayWent);
         if (todaysDate.getDate() != currentDayWent.getDate() || todaysDate.getMonth() != currentDayWent.getMonth() || todaysDate.getFullYear() != currentDayWent.getFullYear()) {
             setWentToday(false);
         }
@@ -63,7 +64,7 @@ export function DaysController({onWeightUpdate} : {onWeightUpdate:any}) {
         try {
             await AsyncStorage.setItem(
                 'dayWent',
-                "1703221230151",
+                "1753221230151",
             );
             await AsyncStorage.setItem(
                 'wentToday',
